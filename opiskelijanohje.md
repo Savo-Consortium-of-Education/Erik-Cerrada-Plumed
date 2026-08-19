@@ -175,3 +175,36 @@ git checkout main
 git pull
 git branch -d issue-5-haku-ja-suodatus
 ```
+
+## 8) Miten opiskelija saa GitHub Copilot Pron käyttöön
+
+> GitHubin opiskelijaetu voi sisältää Copilot Pron. Etujen sisältö voi muuttua, joten tarkista aina ajantasainen tieto GitHubin sivuilta.
+
+### 8.1 Luo GitHub-tili
+1. Mene osoitteeseen https://github.com/signup
+2. Luo tili koulun sähköpostilla (suositus).
+3. Vahvista sähköposti.
+
+### 8.2 Hae opiskelijaetua (GitHub Education)
+1. Mene osoitteeseen https://education.github.com/pack
+2. Paina **Get student benefits** / **Sign up**.
+3. Täytä opiskelijatiedot ja oppilaitos.
+4. Tee henkilöllisyys/opiskelijastatuksen vahvistus (esim. opiskelijakortti tai oppilaitoksen sähköposti).
+5. Lähetä hakemus ja odota hyväksyntää.
+
+### 8.3 Ota Copilot Pro käyttöön
+1. Kun opiskelijaetu on hyväksytty, avaa Copilot-sivu: https://github.com/features/copilot
+2. Aktivoi Copilot Pro opiskelijaedun kautta.
+3. Tarkista tilauksen tila: **GitHub Settings -> Billing and plans**.
+
+### 8.4 Ota Copilot käyttöön VS Codessa
+1. Asenna laajennus: **GitHub Copilot** (ja halutessasi **GitHub Copilot Chat**).
+2. Kirjaudu VS Codessa sisään samalla GitHub-tilillä.
+3. Varmista, että Copilot on päällä VS Coden asetuksissa.
+4. Testaa kirjoittamalla kommentti tai funktion alku ja katso ehdotukset.
+
+### 8.5 Jos aktivointi ei onnistu
+- Tarkista, että opiskelijaetu on oikeasti hyväksytty (ei vain hakemus lähetetty).
+- Tarkista, että olet kirjautunut oikealle GitHub-tilille VS Codessa.
+- Kirjaudu ulos/sisään GitHubista VS Codessa ja käynnistä VS Code uudelleen.
+- Katso GitHubin ohje: https://docs.github.com/en/copilot
