@@ -1,3 +1,14 @@
+Oppilas kopioi issueen omaan repoonsa
+Avaa lähderepon issue: https://github.com/Savo-Consortium-of-Education/pienyrittajan-taloushallinto/issues
+Klikkaa yhtä issuea auki.
+Valitse otsikosta ja kuvauksesta tärkeimmät tiedot.
+Mene omaan repoon ja luo uusi issue.
+Liitä siihen sama otsikko ja kuvaus.
+Lisää alkuun tai loppuun rivi: Alkuperäinen issue: https://github.com/Savo-Consortium-of-Education/pienyrittajan-taloushallinto/issues/XX
+Tee tehtävä oman repon koodiin.
+
+
+
 # Pienyrityksen taloushallintojärjestelmän ongelmat
 
 ## Ongelma 1: Perus ulkoasu ilman modernia suunnittelua
