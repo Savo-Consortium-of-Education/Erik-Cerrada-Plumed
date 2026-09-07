@@ -62,7 +62,7 @@ cd pienyrittajan-taloushallinto
 git remote -v
 ```
 
-3. Vaihda `origin` osoittamaan `teams-1` -repoon:
+3. Vaihda `origin` osoittamaan `teams-1` -repoon: HUOM. tämä kuvitteellinen repo. Tee oma repo johon lähetät oman työsi.
 
 ```powershell
 git remote set-url origin https://github.com/Savo-Consortium-of-Education/teams-1.git
