@@ -1,7 +1,18 @@
+# Organisaatio
+$org = "Savo-Consortium-of-Education"
 
-# Kysy lähde- ja kohde-repot
-$sourceRepo = Read-Host "Syötä lähde-repo (esim. Savo-Consortium-of-Education/pienyrittajan-taloushallinto)"
-$targetRepo = Read-Host "Syötä kohde-repo (esim. Savo-Consortium-of-Education/vx)"
+# Kysy repo-nimet
+$sourceRepoName = Read-Host "Syötä lähde-repon nimi (esim. pienyrittajan-taloushallinto)"
+$targetRepoName = Read-Host "Syötä kohde-repon nimi (esim. vx)"
+
+# Muodosta täydelliset repo-polut
+$sourceRepo = "$org/$sourceRepoName"
+$targetRepo = "$org/$targetRepoName"
+
+Write-Host ""
+Write-Host "Lähde: $sourceRepo" -ForegroundColor Yellow
+Write-Host "Kohde: $targetRepo" -ForegroundColor Yellow
+Write-Host ""
 
 # Hae kaikki issueita lähde-reposta
 Write-Host "Haetaan issueita..." -ForegroundColor Yellow
