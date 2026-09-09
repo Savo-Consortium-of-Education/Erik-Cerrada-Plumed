@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Pienyrityksen Taloushallinto
 
 Yksinkertainen web-pohjainen taloushallintojärjestelmä pienyrityksille. Ohjelman avulla voit hallita menoja, tuloja, matkalaskuja, puhelin- ja tietoliikennekuluja, sekä seurata yrityksen kannattavuutta ja käsitellä vero- ja ALV-ilmoituksia.
@@ -123,3 +124,7 @@ Järjestelmä on suunniteltu laajennettavaksi. Tulevaisuuden ominaisuuksia:
 ## Tuki ja kehitys
 
 Jos sinulla on kysymyksiä tai ehdotuksia, ota yhteyttä projektiin.
+=======
+# Erik-Cerrada-Plumed
+Eerikin repo
+>>>>>>> 3f3ce70d4ee784605ea750f52ec9c6eb3c2d33a1
