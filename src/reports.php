@@ -27,38 +27,56 @@ for ($q = 1; $q <= 4; $q++) {
 <head>
     <meta charset="UTF-8">
     <title>Raportit</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
+        body { font-family: Arial, sans-serif; margin: 200px; }
         table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th, td { border: 1px solid #ddd; text-align: left; }
         th { background-color: #f2f2f2; }
     </style>
 </head>
 <body>
     <h1>Raportit</h1>
-    <a href="index.php">Takaisin kotiin</a>
-
-    <h2>Yrityksen kannattavuus</h2>
-    <p>Kokonais tulot: <?php echo number_format($total_income, 2); ?> €</p>
-    <p>Kokonais menot: <?php echo number_format($total_expense, 2); ?> €</p>
-    <p>Voittomarginaali: <?php echo number_format($profit, 2); ?> €</p>
-
-    <h2>Kvartaaliraportit</h2>
-    <table>
-        <tr>
-            <th>Kvartaali</th>
-            <th>Tulot</th>
-            <th>Menot</th>
-            <th>Voittomarginaali</th>
-        </tr>
-        <?php foreach ($quarters as $q => $data): ?>
-        <tr>
-            <td>Q<?php echo $q; ?></td>
-            <td><?php echo number_format($data['income'] ?? 0, 2); ?> €</td>
-            <td><?php echo number_format($data['expense'] ?? 0, 2); ?> €</td>
-            <td><?php echo number_format(($data['income'] ?? 0) - ($data['expense'] ?? 0), 2); ?> €</td>
-        </tr>
-        <?php endforeach; ?>
-    </table>
+    <nav class="nav nav-pills nav-fill" style="margin-bottom: 20px;">
+        <a href="index.php" class="nav-link">Koti</a>
+        <a href="add_transaction.php" class="nav-link">Lisää tapahtuma</a>
+        <a href="reports.php" class="nav-link active">Raportit</a>
+        <a href="tax_reports.php" class="nav-link">Veroilmoitukset</a>
+    </nav>
+    <div class="container">
+        <h2>Yrityksen kannattavuus</h2>
+        <div class="row">
+            <div class="col card text-center" style="width: 18rem; height: 10rem; margin-right: 20px; display: flex; align-items: center; justify-content: center;">
+                <p>Kokonais tulot: <?php echo number_format($total_income, 2); ?> €</p>
+            </div>
+            <div class="col card text-center" style="width: 18rem; height: 10rem; margin-right: 20px; display: flex; align-items: center; justify-content: center;">
+                <p>Kokonais menot: <?php echo number_format($total_expense, 2); ?> €</p>
+            </div>
+            <div class="col card text-center" style="width: 18rem; height: 10rem; display: flex; align-items: center; justify-content: center;">
+                <p>Voittomarginaali: <?php echo number_format($profit, 2); ?> €</p>
+            </div>
+        </div>
+        <div class="card text-center mt-4 p-3">
+            <h2>Kvartaaliraportit</h2>
+            <div class="table-responsive">
+                <table class="table table-striped mb-0">
+                    <tr>
+                        <th>Kvartaali</th>
+                        <th>Tulot</th>
+                        <th>Menot</th>
+                        <th>Voittomarginaali</th>
+                    </tr>
+                    <?php foreach ($quarters as $q => $data): ?>
+                    <tr>
+                        <td>Q<?php echo $q; ?></td>
+                        <td><?php echo number_format($data['income'] ?? 0, 2); ?> €</td>
+                        <td><?php echo number_format($data['expense'] ?? 0, 2); ?> €</td>
+                        <td><?php echo number_format(($data['income'] ?? 0) - ($data['expense'] ?? 0), 2); ?> €</td>
+                    </tr>
+                    <?php endforeach; ?>
+                </table>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

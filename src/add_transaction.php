@@ -23,48 +23,55 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <title>Lisää tapahtuma</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
+        body { font-family: Arial, sans-serif; margin: 200px; }
         form { max-width: 400px; }
         label { display: block; margin-top: 10px; }
         input, select { width: 100%; padding: 5px; }
-        button { margin-top: 15px; padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; }
         .message { color: green; }
     </style>
 </head>
 <body>
     <h1>Lisää tapahtuma</h1>
-    <a href="index.php">Takaisin kotiin</a>
+    <nav class="nav nav-pills nav-fill" style="margin-bottom: 20px;">
+        <a href="index.php" class="nav-link">Koti</a>
+        <a href="add_transaction.php" class="nav-link active">Lisää tapahtuma</a>
+        <a href="reports.php" class="nav-link">Raportit</a>
+        <a href="tax_reports.php" class="nav-link">Veroilmoitukset</a>
+    </nav>
     <br><br>
     <?php if ($message) echo "<p class='message'>$message</p>"; ?>
-    <form method="post">
-        <label>Päivämäärä:</label>
-        <input type="date" name="date" required>
+    <div class="col card">
+        <form method="post" style="margin: 20px;">
+            <label>Päivämäärä:</label>
+            <input type="date" class="form-control" name="date" required>
 
-        <label>Tyyppi:</label>
-        <select name="type" required>
-            <option value="income">Tulo</option>
-            <option value="expense">Meno</option>
-        </select>
+            <label>Tyyppi:</label>
+            <select name="type" class="form-control" required>
+                <option value="income">Tulo</option>
+                <option value="expense">Meno</option>
+            </select>
 
-        <label>Kategoria:</label>
-        <select name="category" required>
-            <option value="income">Tulo</option>
-            <option value="general_expense">Yleinen meno</option>
-            <option value="travel">Matkalasku</option>
-            <option value="phone_data">Puhelin ja tietoliikenne</option>
-        </select>
+            <label>Kategoria:</label>
+            <select name="category" class="form-control" required>
+                <option value="income">Tulo</option>
+                <option value="general_expense">Yleinen meno</option>
+                <option value="travel">Matkalasku</option>
+                <option value="phone_data">Puhelin ja tietoliikenne</option>
+            </select>
 
-        <label>Kuvaus:</label>
-        <input type="text" name="description" required>
+            <label>Kuvaus:</label>
+            <input type="text" class="form-control" name="description" required>
 
-        <label>Summa (€):</label>
-        <input type="number" step="0.01" name="amount" required>
+            <label>Summa (€):</label>
+            <input type="number" step="0.01" class="form-control" name="amount" required>
 
-        <label>ALV-prosentti:</label>
-        <input type="number" step="0.01" name="vat_rate" value="24">
+            <label>ALV-prosentti:</label>
+            <input type="number" step="0.01" class="form-control" name="vat_rate" value="24">
 
-        <button type="submit">Lisää tapahtuma</button>
-    </form>
+            <button type="submit"  class="btn btn-success" style="margin-top: 10px; width: 100%;">Lisää tapahtuma</button>
+        </form>
+    </div>
 </body>
 </html>
