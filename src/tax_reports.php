@@ -1,5 +1,11 @@
 <?php
+session_start();
 require 'config.php';
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 
 $message = '';
 
@@ -66,6 +72,7 @@ $total_expense = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
         <a href="add_transaction.php" class="nav-link">Lisää tapahtuma</a>
         <a href="reports.php" class="nav-link">Raportit</a>
         <a href="tax_reports.php" class="nav-link active">Veroilmoitukset</a>
+        <a href="logout.php" class="btn btn-danger" style="margin-left: 10px;">Kirjaudu ulos</a>
     </nav>
     <div class="container">
         <div class="row">
@@ -95,7 +102,7 @@ $total_expense = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
                 <div class="col">
                     <button class="btn btn-primary" onclick="window.location.href='?export=vat'">Vie ALV-ilmoitus CSV:ään</button>
                 </div>
-                <div class="col" style="margin-top: 10px;">
+                <div class="col">
                     <button class="btn btn-primary" onclick="window.location.href='?export=tax'">Vie veroilmoitus CSV:ään</button>
                 </div>
             </div>

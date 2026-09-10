@@ -1,5 +1,11 @@
 <?php
+session_start();
 require 'config.php';
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 
 $message = '';
 
@@ -40,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <a href="add_transaction.php" class="nav-link active">Lisää tapahtuma</a>
         <a href="reports.php" class="nav-link">Raportit</a>
         <a href="tax_reports.php" class="nav-link">Veroilmoitukset</a>
+        <a href="logout.php" class="btn btn-danger" style="margin-left: 10px;">Kirjaudu ulos</a>
     </nav>
     <br><br>
     <?php if ($message) echo "<p class='message'>$message</p>"; ?>

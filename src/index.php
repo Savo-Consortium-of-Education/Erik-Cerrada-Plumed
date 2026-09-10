@@ -1,5 +1,17 @@
 <?php
+session_set_cookie_params([
+    'httponly' => true,
+    'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+    'samesite' => 'Lax'
+]);
+
+session_start();
 require 'config.php';
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 
 // Profitability
 $stmt = $pdo->query("SELECT SUM(CASE WHEN type='income' THEN amount ELSE 0 END) as total_income, SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) as total_expense FROM transactions");
@@ -29,6 +41,7 @@ $profit = $total_income - $total_expense;
         <a href="add_transaction.php" class="nav-link">Lisää tapahtuma</a>
         <a href="reports.php" class="nav-link">Raportit</a>
         <a href="tax_reports.php" class="nav-link">Veroilmoitukset</a>
+        <a href="logout.php" class="btn btn-danger" style="margin-left: 10px;">Kirjaudu ulos</a>
     </nav>
     <div class="container">
         <div class="row">

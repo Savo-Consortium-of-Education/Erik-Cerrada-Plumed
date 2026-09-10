@@ -1,5 +1,11 @@
 <?php
+session_start();
 require 'config.php';
+
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 
 // Profitability
 $stmt = $pdo->query("SELECT SUM(CASE WHEN type='income' THEN amount ELSE 0 END) as total_income, SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) as total_expense FROM transactions");
@@ -43,6 +49,7 @@ for ($q = 1; $q <= 4; $q++) {
         <a href="add_transaction.php" class="nav-link">Lisää tapahtuma</a>
         <a href="reports.php" class="nav-link active">Raportit</a>
         <a href="tax_reports.php" class="nav-link">Veroilmoitukset</a>
+        <a href="logout.php" class="btn btn-danger" style="margin-left: 10px;">Kirjaudu ulos</a>
     </nav>
     <div class="container">
         <h2>Yrityksen kannattavuus</h2>
