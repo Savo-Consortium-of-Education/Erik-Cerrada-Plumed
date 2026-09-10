@@ -22,10 +22,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <html lang="fi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Lisää tapahtuma</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; margin: 200px; }
+        body { font-family: Arial, sans-serif; margin: 20px; }
         form { max-width: 400px; }
         label { display: block; margin-top: 10px; }
         input, select { width: 100%; padding: 5px; }

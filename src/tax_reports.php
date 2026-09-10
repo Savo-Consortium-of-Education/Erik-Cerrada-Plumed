@@ -52,10 +52,11 @@ $total_expense = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
 <html lang="fi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Veroilmoitukset</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; margin: 200px; }
+        body { font-family: Arial, sans-serif; margin: 20px; }
     </style>
 </head>
 <body>
@@ -89,9 +90,15 @@ $total_expense = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
 
     <div class="card mt-4 p-3">
         <h1>CSV-viennit</h1>
-        <div class="col">
-            <button class="btn btn-primary" onclick="window.location.href='?export=vat'">Vie ALV-ilmoitus CSV:ään</button>
-            <button class="btn btn-primary" onclick="window.location.href='?export=tax'">Vie veroilmoitus CSV:ään</button>
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <button class="btn btn-primary" onclick="window.location.href='?export=vat'">Vie ALV-ilmoitus CSV:ään</button>
+                </div>
+                <div class="col" style="margin-top: 10px;">
+                    <button class="btn btn-primary" onclick="window.location.href='?export=tax'">Vie veroilmoitus CSV:ään</button>
+                </div>
+            </div>
         </div>
     </div>
 </body>
