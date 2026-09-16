@@ -19,6 +19,56 @@ $row = $stmt->fetch(PDO::FETCH_ASSOC);
 $total_income = $row['total_income'] ?? 0;
 $total_expense = $row['total_expense'] ?? 0;
 $profit = $total_income - $total_expense;
+
+$search = trim($_GET['search'] ?? '');
+$date_from = $_GET['date_from'] ?? '';
+$date_to = $_GET['date_to'] ?? '';
+$category = trim($_GET['category'] ?? '');
+$amount_min = $_GET['amount_min'] ?? '';
+$amount_max = $_GET['amount_max'] ?? '';
+
+$where = [];
+$params = [];
+
+if ($search !== '') {
+    $where[] = 'description LIKE :search';
+    $params['search'] = '%' . $search . '%';
+}
+
+if ($date_from !== '') {
+    $where[] = '`date` >= :date_from';
+    $params['date_from'] = $date_from;
+}
+
+if ($date_to !== '') {
+    $where[] = '`date` <= :date_to';
+    $params['date_to'] = $date_to;
+}
+
+if ($category !== '') {
+    $where[] = 'category = :category';
+    $params['category'] = $category;
+}
+
+if ($amount_min !== '' && is_numeric($amount_min)) {
+    $where[] = 'amount >= :amount_min';
+    $params['amount_min'] = (float) $amount_min;
+}
+
+if ($amount_max !== '' && is_numeric($amount_max)) {
+    $where[] = 'amount <= :amount_max';
+    $params['amount_max'] = (float) $amount_max;
+}
+
+$where_sql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+
+$stmt = $pdo->prepare(
+    "SELECT * FROM transactions
+     $where_sql
+     ORDER BY `date` DESC
+     LIMIT 10"
+);
+$stmt->execute($params);
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -70,7 +120,6 @@ $profit = $total_income - $total_expense;
                         </tr>
 
                         <?php
-                        $stmt = $pdo->query("SELECT * FROM transactions ORDER BY date DESC LIMIT 10");
                         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                             echo "<tr>";
                             echo "<td>" . $row['date'] . "</td>";
@@ -86,5 +135,71 @@ $profit = $total_income - $total_expense;
                 </div>
             </div>
         </div>
+    </div>
+    <form method="get" class="card p-3 mb-4">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label for="search" class="form-label">Haku kuvauksesta</label>
+                <input type="text" id="search" name="search"
+                       class="form-control"
+                       value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>">
+            </div>
+
+            <div class="col-md-2">
+                <label for="date_from" class="form-label">Päivämäärä alkaen</label>
+                <input type="date" id="date_from" name="date_from"
+                       class="form-control"
+                       value="<?= htmlspecialchars($date_from, ENT_QUOTES, 'UTF-8') ?>">
+            </div>
+
+            <div class="col-md-2">
+                <label for="date_to" class="form-label">Päivämäärä asti</label>
+                <input type="date" id="date_to" name="date_to"
+                       class="form-control"
+                       value="<?= htmlspecialchars($date_to, ENT_QUOTES, 'UTF-8') ?>">
+            </div>
+
+            <div class="col-md-2">
+                <label for="category" class="form-label">Kategoria</label>
+                <select id="category" name="category" class="form-select">
+                    <option value="">Kaikki kategoriat</option>
+                    <option value="income" <?= $category === 'income' ? 'selected' : '' ?>>
+                        Tulot
+                    </option>
+                    <option value="general_expense" <?= $category === 'general_expense' ? 'selected' : '' ?>>
+                        Yleiset menot
+                    </option>
+                    <option value="travel" <?= $category === 'travel' ? 'selected' : '' ?>>
+                        Matkakulut
+                    </option>
+                    <option value="phone_data" <?= $category === 'phone_data' ? 'selected' : '' ?>>
+                        Puhelin ja data
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-md-1">
+                <label for="amount_min" class="form-label">Min. €</label>
+                <input type="number" step="0.01" id="amount_min" name="amount_min"
+                       class="form-control"
+                       value="<?= htmlspecialchars($amount_min, ENT_QUOTES, 'UTF-8') ?>">
+            </div>
+
+            <div class="col-md-1">
+                <label for="amount_max" class="form-label">Max. €</label>
+                <input type="number" step="0.01" id="amount_max" name="amount_max"
+                       class="form-control"
+                       value="<?= htmlspecialchars($amount_max, ENT_QUOTES, 'UTF-8') ?>">
+            </div>
+
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Hae</button>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <a href="index.php" class="btn btn-outline-secondary">Tyhjennä suodattimet</a>
+        </div>
+    </form>
 </body>
 </html>
