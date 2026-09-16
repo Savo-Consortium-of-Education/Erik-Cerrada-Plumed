@@ -29,38 +29,54 @@ if (isset($_GET['export'])) {
     // CSV headers
     fputcsv($output, ['Päivämäärä', 'Tyyppi', 'Kategoria', 'Kuvaus', 'Summa', 'ALV-prosentti', 'ALV-summa']);
 
-    $stmt = $pdo->query("SELECT * FROM transactions ORDER BY date");
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        fputcsv($output, [
-            $row['date'],
-            $row['type'] == 'income' ? 'Tulo' : 'Meno',
-            ucfirst(str_replace('_', ' ', $row['category'])),
-            $row['description'],
-            $row['amount'],
-            $row['vat_rate'],
-            $row['vat_amount']
-        ]);
+    try {
+        $stmt = $pdo->query("SELECT * FROM transactions ORDER BY date");
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            fputcsv($output, [
+                $row['date'],
+                $row['type'] == 'income' ? 'Tulo' : 'Meno',
+                ucfirst(str_replace('_', ' ', $row['category'])),
+                $row['description'],
+                $row['amount'],
+                $row['vat_rate'],
+                $row['vat_amount']
+            ]);
+        }
+    } catch (PDOException $e) {
+        error_log('CSV export failed: ' . $e->getMessage());
+        http_response_code(503);
+        exit('Raportin vienti ei ole tällä hetkellä käytettävissä.');
     }
 
     fclose($output);
     exit;
 }
 
-// VAT summary
-$stmt = $pdo->query("SELECT SUM(vat_amount) as total_vat FROM transactions WHERE type='income'");
-$vat_payable = $stmt->fetch(PDO::FETCH_ASSOC)['total_vat'] ?? 0;
+try {
+    // VAT summary
+    $stmt = $pdo->query("SELECT SUM(vat_amount) as total_vat FROM transactions WHERE type='income'");
+    $vat_payable = $stmt->fetch(PDO::FETCH_ASSOC)['total_vat'] ?? 0;
 
-$stmt = $pdo->query("SELECT SUM(vat_amount) as total_vat FROM transactions WHERE type='expense'");
-$vat_deductible = $stmt->fetch(PDO::FETCH_ASSOC)['total_vat'] ?? 0;
+    $stmt = $pdo->query("SELECT SUM(vat_amount) as total_vat FROM transactions WHERE type='expense'");
+    $vat_deductible = $stmt->fetch(PDO::FETCH_ASSOC)['total_vat'] ?? 0;
 
-$vat_balance = $vat_payable - $vat_deductible;
+    $vat_balance = $vat_payable - $vat_deductible;
 
-// Tax summary
-$stmt = $pdo->query("SELECT SUM(amount) as total FROM transactions WHERE type='income'");
-$total_income = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
+    // Tax summary
+    $stmt = $pdo->query("SELECT SUM(amount) as total FROM transactions WHERE type='income'");
+    $total_income = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
 
-$stmt = $pdo->query("SELECT SUM(amount) as total FROM transactions WHERE type='expense'");
-$total_expense = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
+    $stmt = $pdo->query("SELECT SUM(amount) as total FROM transactions WHERE type='expense'");
+    $total_expense = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
+} catch (PDOException $e) {
+    error_log('Tax report query failed: ' . $e->getMessage());
+    $message = 'Raportin tietoja ei voitu hakea. Yritä myöhemmin uudelleen.';
+    $vat_payable = 0;
+    $vat_deductible = 0;
+    $vat_balance = 0;
+    $total_income = 0;
+    $total_expense = 0;
+}
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -83,6 +99,12 @@ $total_expense = $stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
         <a href="logout.php" class=" btn btn-danger" style="margin-left: 10px;">Kirjaudu ulos</a>
     </nav>
     <div class="container">
+        <?php if ($message): ?>
+            <div class="alert alert-danger" role="alert">
+                <?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?>
+            </div>
+        <?php endif; ?>
+
         <div class="row">
             <div class="col">
                 <div class="card mt-4 p-3">

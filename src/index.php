@@ -69,6 +69,23 @@ $stmt = $pdo->prepare(
      LIMIT 10"
 );
 $stmt->execute($params);
+$transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$transactionError = '';
+try {
+    $stmt = $pdo->prepare(
+        "SELECT * FROM transactions
+         $where_sql
+         ORDER BY `date` DESC
+         LIMIT 10"
+    );
+    $stmt->execute($params);
+    $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log('Transaction query failed: ' . $e->getMessage());
+    $transactionError = 'Tapahtumia ei voitu hakea. Yritä myöhemmin uudelleen.';
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -94,6 +111,12 @@ $stmt->execute($params);
         <a href="logout.php" class="btn btn-danger" style="margin-left: 10px;">Kirjaudu ulos</a>
     </nav>
     <div class="container">
+        <?php if ($transactionError): ?>
+            <div class="alert alert-danger" role="alert">
+                <?= htmlspecialchars($transactionError, ENT_QUOTES, 'UTF-8') ?>
+            </div>
+        <?php endif; ?>
+
         <div class="row">
             <div class="col card text-center" style="width: 18rem; height: 10rem; margin-right: 20px; display: flex; align-items: center; justify-content: center;">
                 <p>Kokonais tulot: <?php echo number_format($total_income, 2); ?> €</p>
@@ -119,18 +142,17 @@ $stmt->execute($params);
                             <th>ALV</th>
                         </tr>
 
-                        <?php
-                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                            echo "<tr>";
-                            echo "<td>" . $row['date'] . "</td>";
-                            echo "<td>" . ($row['type'] == 'income' ? 'Tulo' : 'Meno') . "</td>";
-                            echo "<td>" . ucfirst(str_replace('_', ' ', $row['category'])) . "</td>";
-                            echo "<td>" . $row['description'] . "</td>";
-                            echo "<td>" . number_format($row['amount'], 2) . " €</td>";
-                            echo "<td>" . number_format($row['vat_amount'], 2) . " €</td>";
-                            echo "</tr>";
-                        }
-                        ?>
+                        <?php foreach ($transactions as $row): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($row['date'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= $row['type'] === 'income' ? 'Tulo' : 'Meno' ?></td>
+                                <td><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $row['category'])), ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= htmlspecialchars($row['description'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= number_format((float) $row['amount'], 2) ?> €</td>
+                                <td><?= number_format((float) $row['vat_amount'], 2) ?> €</td>
+                            </tr>
+                        <?php endforeach; ?>
+
                     </table>
                 </div>
             </div>

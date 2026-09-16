@@ -7,25 +7,39 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// Profitability
-$stmt = $pdo->query("SELECT SUM(CASE WHEN type='income' THEN amount ELSE 0 END) as total_income, SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) as total_expense FROM transactions");
-$row = $stmt->fetch(PDO::FETCH_ASSOC);
-$total_income = $row['total_income'] ?? 0;
-$total_expense = $row['total_expense'] ?? 0;
-$profit = $total_income - $total_expense;
-
-// Quarterly reports
+$reportError = '';
 $quarters = [];
-for ($q = 1; $q <= 4; $q++) {
-    $start_month = ($q - 1) * 3 + 1;
-    $end_month = $q * 3;
-    $stmt = $pdo->prepare("SELECT
-        SUM(CASE WHEN type='income' THEN amount ELSE 0 END) as income,
-        SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) as expense
-        FROM transactions
-        WHERE MONTH(date) BETWEEN ? AND ?");
-    $stmt->execute([$start_month, $end_month]);
-    $quarters[$q] = $stmt->fetch(PDO::FETCH_ASSOC);
+
+try {
+    // Profitability
+    $stmt = $pdo->query("SELECT SUM(CASE WHEN type='income' THEN amount ELSE 0 END) as total_income, SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) as total_expense FROM transactions");
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    $total_income = $row['total_income'] ?? 0;
+    $total_expense = $row['total_expense'] ?? 0;
+    $profit = $total_income - $total_expense;
+
+    // Quarterly reports
+    for ($q = 1; $q <= 4; $q++) {
+        $start_month = ($q - 1) * 3 + 1;
+        $end_month = $q * 3;
+        $stmt = $pdo->prepare("SELECT
+            SUM(CASE WHEN type='income' THEN amount ELSE 0 END) as income,
+            SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) as expense
+            FROM transactions
+            WHERE MONTH(date) BETWEEN ? AND ?");
+        $stmt->execute([$start_month, $end_month]);
+        $quarters[$q] = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+} catch (PDOException $e) {
+    error_log('Report query failed: ' . $e->getMessage());
+    $reportError = 'Raportin tietoja ei voitu hakea. Yritä myöhemmin uudelleen.';
+    $total_income = 0;
+    $total_expense = 0;
+    $profit = 0;
+
+    for ($q = 1; $q <= 4; $q++) {
+        $quarters[$q] = ['income' => 0, 'expense' => 0];
+    }
 }
 
 $chart_data = [
@@ -73,6 +87,12 @@ foreach ($quarters as $data) {
         <a href="logout.php" class="btn btn-danger" style="margin-left: 10px;">Kirjaudu ulos</a>
     </nav>
     <div class="container">
+        <?php if ($reportError): ?>
+            <div class="alert alert-danger" role="alert">
+                <?= htmlspecialchars($reportError, ENT_QUOTES, 'UTF-8') ?>
+            </div>
+        <?php endif; ?>
+
         <h2>Yrityksen kannattavuus</h2>
         <div class="row">
             <div class="col card text-center" style="width: 18rem; height: 10rem; margin-right: 20px; display: flex; align-items: center; justify-content: center;">

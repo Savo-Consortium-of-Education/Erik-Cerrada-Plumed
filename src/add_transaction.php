@@ -61,14 +61,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $vat_rate = (float) $vatRateInput;
         $vat_amount = ($amount * $vat_rate / 100) / (1 + $vat_rate / 100);
 
-        $stmt = $pdo->prepare(
-            "INSERT INTO transactions
-            (date, type, category, description, amount, vat_rate, vat_amount)
-            VALUES (?, ?, ?, ?, ?, ?, ?)"
-        );
-        $stmt->execute([$date, $type, $category, $description, $amount, $vat_rate, $vat_amount]);
+        try {
+            $stmt = $pdo->prepare(
+                "INSERT INTO transactions
+                (date, type, category, description, amount, vat_rate, vat_amount)
+                VALUES (?, ?, ?, ?, ?, ?, ?)"
+            );
+            $stmt->execute([$date, $type, $category, $description, $amount, $vat_rate, $vat_amount]);
 
-        $message = 'Tapahtuma lisätty onnistuneesti!';
+            $message = 'Tapahtuma lisätty onnistuneesti!';
+        } catch (PDOException $e) {
+            error_log('Transaction insert failed: ' . $e->getMessage());
+            $message = 'Tapahtuman tallennus epäonnistui. Yritä myöhemmin uudelleen.';
+        }
     }
 }
 ?>
