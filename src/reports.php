@@ -27,6 +27,22 @@ for ($q = 1; $q <= 4; $q++) {
     $stmt->execute([$start_month, $end_month]);
     $quarters[$q] = $stmt->fetch(PDO::FETCH_ASSOC);
 }
+
+$chart_data = [
+    'labels' => ['Q1', 'Q2', 'Q3', 'Q4'],
+    'income' => [],
+    'expense' => [],
+    'profit' => []
+];
+
+foreach ($quarters as $data) {
+    $income = (float) ($data['income'] ?? 0);
+    $expense = (float) ($data['expense'] ?? 0);
+
+    $chart_data['income'][] = $income;
+    $chart_data['expense'][] = $expense;
+    $chart_data['profit'][] = $income - $expense;
+}
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -35,11 +51,16 @@ for ($q = 1; $q <= 4; $q++) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Raportit</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         table { border-collapse: collapse; width: 100%; margin-top: 20px; }
         th, td { border: 1px solid #ddd; text-align: left; }
         th { background-color: #f2f2f2; }
+        .report-chart {
+            position: relative;
+            height: 360px;
+        }
     </style>
 </head>
 <body>
@@ -85,6 +106,63 @@ for ($q = 1; $q <= 4; $q++) {
                 </table>
             </div>
         </div>
+        <div class="card mt-4 p-3">
+            <h2>Talouden kehitys kvartaaleittain</h2>
+            <div class="report-chart">
+                <canvas id="quarterlyChart" aria-label="Kvartaalien tulot, menot ja voitot" role="img"></canvas>
+            </div>
+        </div>
     </div>
 </body>
 </html>
+
+<script>
+    const chartData = <?= json_encode(
+        $chart_data,
+        JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+    ); ?>;
+
+    new Chart(document.getElementById('quarterlyChart'), {
+        type: 'bar',
+        data: {
+            labels: chartData.labels,
+            datasets: [
+                {
+                    label: 'Tulot',
+                    data: chartData.income,
+                    backgroundColor: '#198754'
+                },
+                {
+                    label: 'Menot',
+                    data: chartData.expense,
+                    backgroundColor: '#dc3545'
+                },
+                {
+                    label: 'Voitto',
+                    data: chartData.profit,
+                    backgroundColor: '#0d6efd'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: value => `${value.toLocaleString('fi-FI')} €`
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: context =>
+                            `${context.dataset.label}: ${context.parsed.y.toLocaleString('fi-FI')} €`
+                    }
+                }
+            }
+        }
+    });
+</script>
