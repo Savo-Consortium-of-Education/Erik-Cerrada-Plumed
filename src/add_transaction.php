@@ -9,19 +9,67 @@ if (!isset($_SESSION['user_id'])) {
 
 $message = '';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $date = $_POST['date'];
-    $type = $_POST['type'];
-    $category = $_POST['category'];
-    $description = $_POST['description'];
-    $amount = $_POST['amount'];
-    $vat_rate = $_POST['vat_rate'];
-    $vat_amount = ($amount * $vat_rate / 100) / (1 + $vat_rate / 100); // Calculate VAT amount
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $date = trim((string) ($_POST['date'] ?? ''));
+    $type = trim((string) ($_POST['type'] ?? ''));
+    $category = trim((string) ($_POST['category'] ?? ''));
+    $description = trim((string) ($_POST['description'] ?? ''));
+    $amountInput = trim((string) ($_POST['amount'] ?? ''));
+    $vatRateInput = trim((string) ($_POST['vat_rate'] ?? ''));
 
-    $stmt = $pdo->prepare("INSERT INTO transactions (date, type, category, description, amount, vat_rate, vat_amount) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$date, $type, $category, $description, $amount, $vat_rate, $vat_amount]);
+    $allowedTypes = ['income', 'expense'];
+    $allowedCategories = ['income', 'general_expense', 'travel', 'phone_data'];
+    $dateObject = DateTime::createFromFormat('!Y-m-d', $date);
+    $dateErrors = DateTime::getLastErrors();
+    $dateIsValid = $dateObject !== false
+        && (!$dateErrors || ($dateErrors['warning_count'] === 0 && $dateErrors['error_count'] === 0))
+        && $dateObject->format('Y-m-d') === $date;
 
-    $message = 'Tapahtuma lisätty onnistuneesti!';
+    $amountInput = str_replace(',', '.', $amountInput);
+    $vatRateInput = str_replace(',', '.', $vatRateInput);
+
+    $errors = [];
+
+    if (!$dateIsValid) {
+        $errors[] = 'Päivämäärä ei ole kelvollinen.';
+    }
+
+    if (!in_array($type, $allowedTypes, true)) {
+        $errors[] = 'Tyyppi ei ole kelvollinen.';
+    }
+
+    if (!in_array($category, $allowedCategories, true)) {
+        $errors[] = 'Kategoria ei ole kelvollinen.';
+    }
+
+    if ($description === '' || strlen($description) > 255) {
+        $errors[] = 'Kuvauksen tulee sisältää 1–255 merkkiä.';
+    }
+
+    if (!preg_match('/^\d+(?:\.\d{1,2})?$/', $amountInput) || (float) $amountInput <= 0) {
+        $errors[] = 'Summan tulee olla positiivinen luku.';
+    }
+
+    if (!preg_match('/^(?:\d+(?:\.\d{1,2})?)$/', $vatRateInput) || (float) $vatRateInput < 0 || (float) $vatRateInput > 100) {
+        $errors[] = 'ALV-prosentin tulee olla välillä 0–100.';
+    }
+
+    if ($errors) {
+        $message = implode(' ', $errors);
+    } else {
+        $amount = (float) $amountInput;
+        $vat_rate = (float) $vatRateInput;
+        $vat_amount = ($amount * $vat_rate / 100) / (1 + $vat_rate / 100);
+
+        $stmt = $pdo->prepare(
+            "INSERT INTO transactions
+            (date, type, category, description, amount, vat_rate, vat_amount)
+            VALUES (?, ?, ?, ?, ?, ?, ?)"
+        );
+        $stmt->execute([$date, $type, $category, $description, $amount, $vat_rate, $vat_amount]);
+
+        $message = 'Tapahtuma lisätty onnistuneesti!';
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -49,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <a href="logout.php" class="btn btn-danger" style="margin-left: 10px;">Kirjaudu ulos</a>
     </nav>
     <br><br>
-    <?php if ($message) echo "<p class='message'>$message</p>"; ?>
+    <?php if ($message) echo "<p class='message'>" . htmlspecialchars($message, ENT_QUOTES, 'UTF-8') . "</p>"; ?>
     <div class="col card">
         <form method="post" style="margin: 20px;">
             <label>Päivämäärä:</label>
@@ -73,10 +121,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <input type="text" class="form-control" name="description" required>
 
             <label>Summa (€):</label>
-            <input type="number" step="0.01" class="form-control" name="amount" required>
+            <input type="number" step="0.01" min="0.01" class="form-control" name="amount" required>
 
             <label>ALV-prosentti:</label>
-            <input type="number" step="0.01" class="form-control" name="vat_rate" value="24">
+            <input type="number" step="0.01" min="0" max="100" class="form-control" name="vat_rate" value="24" required>
 
             <button type="submit"  class="btn btn-success" style="margin-top: 10px; width: 100%;">Lisää tapahtuma</button>
         </form>
