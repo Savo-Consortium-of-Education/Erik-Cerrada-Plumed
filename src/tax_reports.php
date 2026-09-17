@@ -12,17 +12,25 @@ $message = '';
 if (isset($_GET['export'])) {
     $type = $_GET['export'];
 
-    if (!in_array($type, ['vat', 'tax'], true)) {
+    $filenames = [
+        'vat' => 'alv_ilmoitus.csv',
+        'tax' => 'veroilmoitus.csv',
+    ];
+
+    if (!isset($filenames[$type])) {
         http_response_code(400);
         exit('Virheellinen vientityyppi.');
     }
 
-    $filename = $type === 'vat'
-        ? 'alv_ilmoitus.csv'
-        : 'veroilmoitus.csv';
+    $filename = basename($filenames[$type]);
+    $filename = preg_replace('/[^A-Za-z0-9_.-]/', '_', $filename);
 
     header('Content-Type: text/csv; charset=UTF-8');
-    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header(
+        'Content-Disposition: attachment; filename="' .
+        addcslashes($filename, "\\\"") .
+        '"'
+    );
 
     $output = fopen('php://output', 'w');
 
