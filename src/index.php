@@ -69,13 +69,32 @@ $where_sql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
 $transactionError = '';
 $transactions = [];
+$perPage = 10;
+$page = filter_input(
+    INPUT_GET,
+    'page',
+    FILTER_VALIDATE_INT,
+    ['options' => ['min_range' => 1]]
+);
+$page = $page ?: 1;
+$totalTransactions = 0;
+$totalPages = 1;
 
 try {
+    $countStmt = $pdo->prepare(
+        "SELECT COUNT(*) FROM transactions $where_sql"
+    );
+    $countStmt->execute($params);
+    $totalTransactions = (int) $countStmt->fetchColumn();
+    $totalPages = max(1, (int) ceil($totalTransactions / $perPage));
+    $page = min($page, $totalPages);
+    $offset = ($page - 1) * $perPage;
+
     $stmt = $pdo->prepare(
         "SELECT * FROM transactions
          $where_sql
          ORDER BY `date` DESC
-         LIMIT 10"
+         LIMIT $perPage OFFSET $offset"
     );
     $stmt->execute($params);
     $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -83,6 +102,10 @@ try {
     error_log('Transaction query failed: ' . $e->getMessage());
     $transactionError = 'Tapahtumia ei voitu hakea. Yritä myöhemmin uudelleen.';
 }
+
+$paginationParams = $_GET;
+unset($paginationParams['page']);
+$paginationQuery = http_build_query($paginationParams);
 
 ?>
 <!DOCTYPE html>
@@ -153,6 +176,25 @@ try {
 
                     </table>
                 </div>
+
+                <?php if ($totalPages > 1): ?>
+                    <nav aria-label="Tapahtumien sivutus">
+                        <ul class="pagination justify-content-center mt-3 mb-0">
+                            <?php for ($paginationPage = 1; $paginationPage <= $totalPages; $paginationPage++): ?>
+                                <?php
+                                $pageParams = $paginationParams;
+                                $pageParams['page'] = $paginationPage;
+                                $pageUrl = 'index.php?' . http_build_query($pageParams);
+                                ?>
+                                <li class="page-item <?= $paginationPage === $page ? 'active' : '' ?>">
+                                    <a class="page-link" href="<?= escapeHtml($pageUrl) ?>">
+                                        <?= $paginationPage ?>
+                                    </a>
+                                </li>
+                            <?php endfor; ?>
+                        </ul>
+                    </nav>
+                <?php endif; ?>
             </div>
         </div>
     </div>
