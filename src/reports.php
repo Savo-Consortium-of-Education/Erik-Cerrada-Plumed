@@ -10,9 +10,34 @@ if (!isset($_SESSION['user_id'])) {
 $reportError = '';
 $quarters = [];
 
+$currentYear = (int) date('Y');
+$selectedYear = filter_input(
+    INPUT_GET,
+    'year',
+    FILTER_VALIDATE_INT,
+    ['options' => ['min_range' => 2000, 'max_range' => 2100]]
+);
+
+if ($selectedYear === false || $selectedYear === null) {
+    $selectedYear = $currentYear;
+}
+
+$yearStart = sprintf('%04d-01-01', $selectedYear);
+$nextYearStart = sprintf('%04d-01-01', $selectedYear + 1);
+
 try {
     // Profitability
-    $stmt = $pdo->query("SELECT SUM(CASE WHEN type='income' THEN amount ELSE 0 END) as total_income, SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) as total_expense FROM transactions");
+    $stmt = $pdo->prepare(
+        "SELECT
+            SUM(CASE WHEN type='income' THEN amount ELSE 0 END) as total_income,
+            SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) as total_expense
+         FROM transactions
+         WHERE `date` >= :year_start AND `date` < :next_year_start"
+    );
+    $stmt->execute([
+        'year_start' => $yearStart,
+        'next_year_start' => $nextYearStart
+    ]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     $total_income = $row['total_income'] ?? 0;
     $total_expense = $row['total_expense'] ?? 0;
@@ -20,14 +45,31 @@ try {
 
     // Quarterly reports
     for ($q = 1; $q <= 4; $q++) {
-        $start_month = ($q - 1) * 3 + 1;
-        $end_month = $q * 3;
-        $stmt = $pdo->prepare("SELECT
-            SUM(CASE WHEN type='income' THEN amount ELSE 0 END) as income,
-            SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) as expense
-            FROM transactions
-            WHERE MONTH(date) BETWEEN ? AND ?");
-        $stmt->execute([$start_month, $end_month]);
+        $startMonth = (($q - 1) * 3) + 1;
+        $quarterStart = sprintf('%04d-%02d-01', $selectedYear, $startMonth);
+
+        if ($q === 4) {
+            $quarterEnd = $nextYearStart;
+        } else {
+            $quarterEnd = sprintf(
+                '%04d-%02d-01',
+                $selectedYear,
+                $startMonth + 3
+            );
+        }
+
+        $stmt = $pdo->prepare(
+            "SELECT
+                SUM(CASE WHEN type='income' THEN amount ELSE 0 END) as income,
+                SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) as expense
+             FROM transactions
+             WHERE `date` >= :quarter_start
+               AND `date` < :quarter_end"
+        );
+        $stmt->execute([
+            'quarter_start' => $quarterStart,
+            'quarter_end' => $quarterEnd
+        ]);
         $quarters[$q] = $stmt->fetch(PDO::FETCH_ASSOC);
     }
 } catch (PDOException $e) {
@@ -94,6 +136,23 @@ foreach ($quarters as $data) {
         <?php endif; ?>
 
         <h2>Yrityksen kannattavuus</h2>
+
+        <form method="get" class="row g-3 align-items-end mb-4">
+            <div class="col-auto">
+                <label for="year" class="form-label">Raportin vuosi</label>
+                <select id="year" name="year" class="form-select">
+                    <?php for ($year = $currentYear; $year >= $currentYear - 10; $year--): ?>
+                        <option value="<?= $year ?>" <?= $selectedYear === $year ? 'selected' : '' ?>>
+                            <?= $year ?>
+                        </option>
+                    <?php endfor; ?>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Näytä raportti</button>
+            </div>
+        </form>
+
         <div class="row">
             <div class="col card text-center" style="width: 18rem; height: 10rem; margin-right: 20px; display: flex; align-items: center; justify-content: center;">
                 <p>Kokonais tulot: <?php echo number_format($total_income, 2); ?> €</p>
