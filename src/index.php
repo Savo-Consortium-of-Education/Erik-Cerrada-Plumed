@@ -13,6 +13,11 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+function escapeHtml($value): string
+{
+    return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
 // Profitability
 $stmt = $pdo->query("SELECT SUM(CASE WHEN type='income' THEN amount ELSE 0 END) as total_income, SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) as total_expense FROM transactions");
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -62,16 +67,9 @@ if ($amount_max !== '' && is_numeric($amount_max)) {
 
 $where_sql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
-$stmt = $pdo->prepare(
-    "SELECT * FROM transactions
-     $where_sql
-     ORDER BY `date` DESC
-     LIMIT 10"
-);
-$stmt->execute($params);
-$transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 $transactionError = '';
+$transactions = [];
+
 try {
     $stmt = $pdo->prepare(
         "SELECT * FROM transactions
@@ -113,7 +111,7 @@ try {
     <div class="container">
         <?php if ($transactionError): ?>
             <div class="alert alert-danger" role="alert">
-                <?= htmlspecialchars($transactionError, ENT_QUOTES, 'UTF-8') ?>
+                <?= escapeHtml($transactionError) ?>
             </div>
         <?php endif; ?>
 
@@ -144,10 +142,10 @@ try {
 
                         <?php foreach ($transactions as $row): ?>
                             <tr>
-                                <td><?= htmlspecialchars($row['date'], ENT_QUOTES, 'UTF-8') ?></td>
-                                <td><?= $row['type'] === 'income' ? 'Tulo' : 'Meno' ?></td>
-                                <td><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $row['category'])), ENT_QUOTES, 'UTF-8') ?></td>
-                                <td><?= htmlspecialchars($row['description'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= escapeHtml($row['date']) ?></td>
+                                <td><?= escapeHtml($row['type'] === 'income' ? 'Tulo' : 'Meno') ?></td>
+                                <td><?= escapeHtml(ucfirst(str_replace('_', ' ', $row['category']))) ?></td>
+                                <td><?= escapeHtml($row['description']) ?></td>
                                 <td><?= number_format((float) $row['amount'], 2) ?> €</td>
                                 <td><?= number_format((float) $row['vat_amount'], 2) ?> €</td>
                             </tr>
@@ -164,21 +162,21 @@ try {
                 <label for="search" class="form-label">Haku kuvauksesta</label>
                 <input type="text" id="search" name="search"
                        class="form-control"
-                       value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>">
+                       value="<?= escapeHtml($search) ?>">
             </div>
 
             <div class="col-md-2">
                 <label for="date_from" class="form-label">Päivämäärä alkaen</label>
                 <input type="date" id="date_from" name="date_from"
                        class="form-control"
-                       value="<?= htmlspecialchars($date_from, ENT_QUOTES, 'UTF-8') ?>">
+                       value="<?= escapeHtml($date_from) ?>">
             </div>
 
             <div class="col-md-2">
                 <label for="date_to" class="form-label">Päivämäärä asti</label>
                 <input type="date" id="date_to" name="date_to"
                        class="form-control"
-                       value="<?= htmlspecialchars($date_to, ENT_QUOTES, 'UTF-8') ?>">
+                       value="<?= escapeHtml($date_to) ?>">
             </div>
 
             <div class="col-md-2">
@@ -204,14 +202,14 @@ try {
                 <label for="amount_min" class="form-label">Min. €</label>
                 <input type="number" step="0.01" id="amount_min" name="amount_min"
                        class="form-control"
-                       value="<?= htmlspecialchars($amount_min, ENT_QUOTES, 'UTF-8') ?>">
+                       value="<?= escapeHtml($amount_min) ?>">
             </div>
 
             <div class="col-md-1">
                 <label for="amount_max" class="form-label">Max. €</label>
                 <input type="number" step="0.01" id="amount_max" name="amount_max"
                        class="form-control"
-                       value="<?= htmlspecialchars($amount_max, ENT_QUOTES, 'UTF-8') ?>">
+                       value="<?= escapeHtml($amount_max) ?>">
             </div>
 
             <div class="col-md-1 d-flex align-items-end">
